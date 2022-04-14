@@ -49,7 +49,9 @@ jobs:
           pip install -r requirements-test.txt
           pip install .
       - name: "Run pytest"
-
+        env:
+          AWS_ACCESS_KEY_ID_FOR_GITHUB_CI: ${{ secrets.AWS_ACCESS_KEY_ID_FOR_GITHUB_CI }}
+          AWS_SECRET_ACCESS_KEY_FOR_GITHUB_CI: ${{ secrets.AWS_SECRET_ACCESS_KEY_FOR_GITHUB_CI }}
         run: "python -m pytest tests --cov=afwf_s3"
       - name: "Upload coverage to Codecov"
         if: "contains(env.USING_COVERAGE, matrix.python-version)"
