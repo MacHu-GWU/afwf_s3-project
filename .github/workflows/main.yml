@@ -19,8 +19,8 @@ jobs:
     strategy:
       matrix:
         os: ["ubuntu-latest", ]
-#        python-version: ["3.7", "3.8", "3.9"]
-        python-version: ["3.7", ] # for debug only
+        python-version: ["3.7", "3.8", "3.9"]
+#        python-version: ["3.7", ] # for debug only
         exclude:
           - os: windows-latest # this is a useless exclude rules for demonstration use only
             python-version: 2.7

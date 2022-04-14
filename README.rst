@@ -52,7 +52,7 @@
 Welcome to ``afwf_s3`` Documentation
 ==============================================================================
 
-Documentation for ``afwf_s3``.
+``afwf_s3`` is a `Alfred Workflow <https://www.alfredapp.com/workflows/>`_ built on top of `Script Filter <https://www.alfredapp.com/help/workflows/inputs/script-filter/>`_. It allow you to navigate s3 bucket and objects using folder hierarchy.
 
 
 .. _install:
