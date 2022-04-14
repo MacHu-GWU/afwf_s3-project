@@ -15,7 +15,10 @@ from afwf.workflow import log_debug_info
 
 @attr.define
 class Handler(afwf.Handler):
-    def list_all_bucket(self) -> Iterable[afwf.Item]:
+    def list_all_bucket(
+        self,
+        sf: afwf.ScriptFilter,
+    ):
         for bucket in list_buckets():
             s3path = S3Path(bucket)
             item = afwf.Item(
@@ -36,9 +39,13 @@ class Handler(afwf.Handler):
                 subtitle="Hit Enter to copy 's3 uri' to clipboard",
                 arg=f"s3://{bucket}/",
             )
-            yield item
+            sf.items.append(item)
 
-    def filter_bucket(self, bucket_name_query: str) -> Iterable[afwf.Item]:
+    def filter_bucket(
+        self,
+        sf: afwf.ScriptFilter,
+        bucket_name_query: str,
+    ):
         bucket_list = list_buckets()
         fs = FuzzyObjectSearch(
             keys=bucket_list,
@@ -66,9 +73,12 @@ class Handler(afwf.Handler):
                 subtitle="Hit Enter to copy 's3 uri' to clipboard",
                 arg=f"s3://{bucket}/",
             )
-            yield item
+            sf.items.append(item)
 
-    def s3path_to_item(self, s3path: S3Path) -> afwf.Item:
+    def s3path_to_item(
+        self,
+        s3path: S3Path,
+    ) -> afwf.Item:
         if s3path.is_dir():
             title = s3path.basename + "/"
         else:
@@ -88,9 +98,31 @@ class Handler(afwf.Handler):
         )
         return item
 
-    def list_objects(self, s3path_prefix: S3Path) -> Iterable[afwf.Item]:
+    def list_objects(
+        self,
+        sf: afwf.ScriptFilter,
+        s3path_prefix: S3Path,
+    ):
         for s3path in s3path_prefix.iterdir(bsm=bsm):
-            yield self.s3path_to_item(s3path)
+            sf.items.append(self.s3path_to_item(s3path))
+
+    def show_account_info(
+        self,
+        sf: afwf.ScriptFilter,
+    ):
+        iam_client = bsm._get_client("iam")
+        account_aliases = iam_client.list_account_aliases(). \
+            get("AccountAliases", list())
+        if len(account_aliases):
+            account_alias = account_aliases[0]
+        else:
+            account_alias = "unknwon"
+        item = afwf.Item(
+            title=f"{bsm.aws_account_id}, {bsm.aws_region}",
+            subtitle=f"account alias: {account_alias}",
+            arg=bsm.aws_account_id,
+        )
+        sf.items.append(item)
 
     def lower_level_api(self, query: str) -> afwf.ScriptFilter:
         """
@@ -100,21 +132,29 @@ class Handler(afwf.Handler):
         :return:
         """
         chunks = query.split("/")
+        sf = afwf.ScriptFilter()
         if len(chunks) == 0:
             raise NotImplementedError
         elif len(chunks) == 1:
-            if len(chunks[0].strip()): # "my-buck" or "my-bucket"
-                iterator = self.filter_bucket(bucket_name_query=chunks[0])
-            else: # ""
-                iterator = self.list_all_bucket()
+            q = chunks[0].strip()
+            if len(q):  # "my-buck" or "my-bucket"
+                if q == "?":
+                    self.show_account_info(sf)
+                else:
+                    self.filter_bucket(sf, bucket_name_query=chunks[0])
+            else:  # ""
+                self.list_all_bucket(sf)
         elif len(chunks) >= 2:
             s3path_prefix = S3Path(chunks[0], "/".join(chunks[1:]))
-            iterator = self.list_objects(s3path_prefix)
+            self.list_objects(sf, s3path_prefix)
         else:
             raise NotImplementedError
-        sf = afwf.ScriptFilter()
-        for item in iterator:
-            sf.items.append(item)
+
+        if len(sf.items) == 0:
+            sf.items.append(afwf.Item(
+                title="No result found!",
+                icon=afwf.Icon.from_image_file(afwf.Icons.error)
+            ))
         return sf
 
     def handler(self, query: str) -> afwf.ScriptFilter:

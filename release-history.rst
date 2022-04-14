@@ -19,6 +19,8 @@ Release and Version History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 **Features and Improvements**
 
+- ``s3 ?`` can show current AWS account info
+
 **Minor Improvements**
 
 **Bugfixes**

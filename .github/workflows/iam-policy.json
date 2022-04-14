@@ -15,20 +15,21 @@
             "Sid": "VisualEditor1",
             "Effect": "Allow",
             "Action": [
-                "s3:PutObject",
-                "s3:GetObject",
-                "s3:DeleteObject"
+                "s3:ListAllMyBuckets",
+                "iam:ListAccountAliases",
+                "sts:GetCallerIdentity"
             ],
-            "Resource": "arn:aws:s3:::aws-data-lab-sanhe-for-opensource/unittest/afwf_s3/*"
+            "Resource": "*"
         },
         {
             "Sid": "VisualEditor2",
             "Effect": "Allow",
             "Action": [
-                "s3:ListAllMyBuckets",
-                "sts:GetCallerIdentity"
+                "s3:PutObject",
+                "s3:GetObject",
+                "s3:DeleteObject"
             ],
-            "Resource": "*"
+            "Resource": "arn:aws:s3:::aws-data-lab-sanhe-for-opensource/unittest/afwf_s3/*"
         }
     ]
 }
